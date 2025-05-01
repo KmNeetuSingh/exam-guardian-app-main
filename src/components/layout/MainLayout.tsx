@@ -9,7 +9,7 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   // For now we'll mock a logged-in user state
-  const user = { name: "John Doe", role: "student" };
+  const user = { name: "Neetu", role: "student" };
   
   return (
     <div className="min-h-screen flex flex-col">
