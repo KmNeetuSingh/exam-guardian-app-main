@@ -1,61 +1,118 @@
-
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, ChevronDown, Moon, Sun } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
-  // For now we'll mock a logged-in user state
-  const user = { name: "Neetu", role: "student" };
-  
+  const { user, logout } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
+  // Handle dark mode toggle
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white shadow">
+      <header className="bg-white shadow dark:bg-[#111827]">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/">
-            <h1 className="text-xl font-bold text-exam-primary">Exam Guardian</h1>
-          </Link>
-          
           {user ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="bg-exam-secondary rounded-full p-1">
-                  <User className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-sm font-medium">{user.name}</span>
-                <span className="text-xs bg-exam-primary text-white px-2 py-1 rounded-full">
-                  {user.role}
-                </span>
-              </div>
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <LogOut className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
+            <span className="text-xl font-bold text-exam-primary cursor-not-allowed opacity-60 select-none">
+              Exam Guardian
+            </span>
           ) : (
-            <div className="flex items-center gap-4">
-              <Link to="/login" className="text-exam-primary hover:text-exam-accent">
-                Log in
-              </Link>
-              <Link
-                to="/register"
-                className="bg-exam-primary text-white px-4 py-2 rounded-md hover:bg-exam-accent transition-colors"
-              >
-                Register
-              </Link>
-            </div>
+            <Link to="/">
+              <h1 className="text-xl font-bold text-exam-primary">Exam Guardian</h1>
+            </Link>
           )}
+          <div className="flex items-center gap-4 relative">
+            {/* Dark mode toggle */}
+            <button
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              onClick={() => setDarkMode((d) => !d)}
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-700" />}
+            </button>
+            {user ? (
+              <div ref={dropdownRef} className="relative">
+                <button
+                  className="flex items-center gap-2 bg-exam-secondary rounded-full p-1 focus:outline-none"
+                  onClick={() => setDropdownOpen((open) => !open)}
+                  aria-label="Profile menu"
+                >
+                  <User className="h-5 w-5 text-white" />
+                  <ChevronDown className="h-4 w-4 text-white" />
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white border rounded-lg shadow-lg z-50 p-4 min-w-[180px] dark:bg-[#1f2937] dark:border-[#374151]">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="bg-exam-secondary rounded-full p-1">
+                        <User className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-white">{user.name}</div>
+                        <div className="text-xs text-gray-500 break-all dark:text-gray-300">{user.email || user.id}</div>
+                        <div className="text-xs text-exam-primary font-medium mt-1">{user.role}</div>
+                      </div>
+                    </div>
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-left text-sm text-gray-700 dark:text-gray-200"
+                      onClick={logout}
+                    >
+                      <LogOut className="h-4 w-4" /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="text-exam-primary hover:text-exam-accent">
+                  Log in
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-exam-primary text-white px-4 py-2 rounded-md hover:bg-exam-accent transition-colors"
+                >
+                  Register
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </header>
-      
       <main className="flex-1 container mx-auto px-4 py-8">
         {children || <Outlet />}
       </main>
-      
-      <footer className="bg-gray-100 py-6">
-        <div className="container mx-auto px-4 text-center text-gray-600">
+      <footer className="bg-gray-100 py-6 dark:bg-[#1f2937]">
+        <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-300">
           <p>© {new Date().getFullYear()} Exam Guardian - All rights reserved</p>
         </div>
       </footer>

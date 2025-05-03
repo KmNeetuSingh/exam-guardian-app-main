@@ -1,47 +1,29 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Camera, Clock, FileText } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from 'react-router-dom';
+import { getExams, getSessions } from '@/api/api';
 
 const StudentDashboard = () => {
   const { toast } = useToast();
-  const [upcomingExams] = useState([
-    {
-      id: '1',
-      title: 'Mathematics Final',
-      date: '2025-05-10T14:00:00',
-      duration: '2 hours',
-      status: 'pending',
-    },
-    {
-      id: '2',
-      title: 'English Literature',
-      date: '2025-05-12T10:00:00',
-      duration: '3 hours',
-      status: 'pending',
-    },
-    {
-      id: '3',
-      title: 'Computer Science',
-      date: '2025-05-15T09:00:00',
-      duration: '2.5 hours',
-      status: 'pending',
-    }
-  ]);
-  
-  const [pastExams] = useState([
-    {
-      id: '4',
-      title: 'Biology Midterm',
-      date: '2025-04-20T11:00:00',
-      duration: '1.5 hours',
-      status: 'completed',
-      score: '85%',
-    }
-  ]);
+  const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
+  const [pastExams, setPastExams] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const examsRes = await getExams();
+        const now = new Date();
+        setUpcomingExams(examsRes.data.filter((exam: any) => new Date(exam.date) > now));
+        setPastExams(examsRes.data.filter((exam: any) => new Date(exam.date) <= now));
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to fetch exams from backend', variant: 'destructive' });
+      }
+    };
+    fetchData();
+  }, [toast]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

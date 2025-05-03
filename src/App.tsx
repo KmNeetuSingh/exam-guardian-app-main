@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import StudentDashboard from "./pages/student/Dashboard";
 import ExamStart from "./pages/student/ExamStart";
 import ProctorDashboard from "./pages/proctor/Dashboard";
 import NotFound from "./pages/NotFound";
+import { AuthProvider } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +23,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MainLayout />}>
+          <Route path="/" element={
+            <AuthProvider>
+              <MainLayout />
+            </AuthProvider>
+          }>
             <Route index element={<Index />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />

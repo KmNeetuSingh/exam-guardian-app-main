@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import { login } from '@/api/api';
+import { useAuth } from '@/context/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,31 +18,29 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
-      // In a real app, you would call your API here
-      // For now, we'll simulate a successful login after a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const res = await login(email, password);
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      setUser(res.data.user);
       toast({
         title: "Login successful",
-        description: `Welcome back! You are logged in as a ${role}.`,
+        description: `Welcome back! You are logged in as a ${res.data.user.role}.`,
       });
-      
-      // Redirect based on role
-      if (role === 'student') {
+      if (res.data.user.role === 'student') {
         navigate('/student/dashboard');
       } else {
         navigate('/proctor/dashboard');
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: error?.response?.data?.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
     } finally {
@@ -56,7 +55,6 @@ const Login = () => {
           <h1 className="text-2xl font-bold text-gray-900">Login to Exam Guardian</h1>
           <p className="text-gray-600 mt-2">Enter your credentials to access your account</p>
         </div>
-        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -69,7 +67,6 @@ const Login = () => {
               required
             />
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
@@ -94,7 +91,6 @@ const Login = () => {
               </button>
             </div>
           </div>
-          
           <div className="space-y-3">
             <Label>Login as</Label>
             <RadioGroup defaultValue="student" value={role} onValueChange={setRole} className="flex gap-4">
@@ -108,11 +104,9 @@ const Login = () => {
               </div>
             </RadioGroup>
           </div>
-          
           <Button type="submit" className="w-full bg-exam-primary hover:bg-exam-accent" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Login"}
           </Button>
-          
           <div className="text-center text-sm">
             <Link to="/forgot-password" className="text-exam-primary hover:text-exam-accent">
               Forgot password?

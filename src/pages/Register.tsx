@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import { register } from '@/api/api';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -22,7 +22,6 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (password !== confirmPassword) {
       toast({
         title: "Password error",
@@ -31,24 +30,18 @@ const Register = () => {
       });
       return;
     }
-    
     setIsLoading(true);
-    
     try {
-      // In a real app, you would call your API here
-      // For now, we'll simulate a successful registration after a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await register(name, email, password, role);
       toast({
         title: "Registration successful",
         description: "Your account has been created. You can now login.",
       });
-      
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Registration failed",
-        description: "There was an error creating your account. Please try again.",
+        description: error?.response?.data?.message || "There was an error creating your account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -63,7 +56,6 @@ const Register = () => {
           <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
           <p className="text-gray-600 mt-2">Join Exam Guardian today</p>
         </div>
-        
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
@@ -75,7 +67,6 @@ const Register = () => {
               required
             />
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input 
@@ -87,7 +78,6 @@ const Register = () => {
               required
             />
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
@@ -112,7 +102,6 @@ const Register = () => {
               </button>
             </div>
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
             <Input 
@@ -124,7 +113,6 @@ const Register = () => {
               required
             />
           </div>
-          
           <div className="space-y-3">
             <Label>Register as</Label>
             <RadioGroup defaultValue="student" value={role} onValueChange={setRole} className="flex gap-4">
@@ -138,11 +126,9 @@ const Register = () => {
               </div>
             </RadioGroup>
           </div>
-          
           <Button type="submit" className="w-full bg-exam-primary hover:bg-exam-accent" disabled={isLoading}>
             {isLoading ? "Creating account..." : "Register"}
           </Button>
-          
           <div className="text-center text-sm">
             <p className="text-gray-600">
               Already have an account?{" "}

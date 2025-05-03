@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,90 +7,65 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Link } from 'react-router-dom';
+import { getExams, getSessions, updateSessionStatus } from '@/api/api';
 
 const ProctorDashboard = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const [activeExams] = useState([
-    {
-      id: '1',
-      title: 'Mathematics Final',
-      student: 'Emma Wilson',
-      startTime: new Date('2025-04-30T13:00:00'),
-      duration: '2 hours',
-      status: 'active',
-      flagged: false,
-    },
-    {
-      id: '2',
-      title: 'English Literature',
-      student: 'James Brown',
-      startTime: new Date('2025-04-30T13:30:00'),
-      duration: '3 hours',
-      status: 'active',
-      flagged: true,
-    },
-    {
-      id: '3',
-      title: 'Computer Science',
-      student: 'Sophia Miller',
-      startTime: new Date('2025-04-30T14:00:00'),
-      duration: '2.5 hours',
-      status: 'active',
-      flagged: false,
-    }
-  ]);
-  
-  const [pendingVerifications] = useState([
-    {
-      id: '4',
-      title: 'Physics Midterm',
-      student: 'David Clark',
-      startTime: new Date('2025-04-30T15:00:00'),
-      idSubmitted: true,
-    },
-    {
-      id: '5',
-      title: 'Chemistry Final',
-      student: 'Olivia Johnson',
-      startTime: new Date('2025-04-30T15:30:00'),
-      idSubmitted: true,
-    }
-  ]);
+  const [activeExams, setActiveExams] = useState<any[]>([]);
+  const [pendingVerifications, setPendingVerifications] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const examsRes = await getExams();
+        setActiveExams(examsRes.data.filter((exam: any) => exam.status === 'active'));
+        const sessionsRes = await getSessions();
+        setSessions(sessionsRes.data);
+        setPendingVerifications(sessionsRes.data.filter((s: any) => s.status === 'pending' && s.idVerified));
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to fetch data from backend', variant: 'destructive' });
+      }
+    };
+    fetchData();
+  }, [toast]);
   
   const getTimeElapsed = (startTime: Date) => {
     const now = new Date();
-    const diffMs = now.getTime() - startTime.getTime();
+    const diffMs = now.getTime() - new Date(startTime).getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
     return `${hours}h ${mins}m`;
   };
   
-  const handleFlagExam = (examId: string) => {
-    toast({
-      title: "Exam Flagged",
-      description: "This exam has been flagged for suspicious activity.",
-      variant: "destructive",
-    });
+  const handleFlagExam = async (sessionId: string) => {
+    try {
+      await updateSessionStatus(sessionId, 'flagged');
+      toast({ title: 'Exam Flagged', description: 'This exam has been flagged for suspicious activity.', variant: 'destructive' });
+      // Optionally refresh sessions
+    } catch (error) {
+      toast({ title: 'Error', description: 'Could not flag the exam.', variant: 'destructive' });
+    }
   };
   
-  const handleVerifyId = (examId: string) => {
-    toast({
-      title: "ID Verified",
-      description: "Student ID has been successfully verified.",
-    });
+  const handleVerifyId = async (sessionId: string) => {
+    try {
+      await updateSessionStatus(sessionId, 'active');
+      toast({ title: 'ID Verified', description: 'Student ID has been successfully verified.' });
+      // Optionally refresh sessions
+    } catch (error) {
+      toast({ title: 'Error', description: 'Could not verify ID.', variant: 'destructive' });
+    }
   };
   
   const filteredActiveExams = activeExams.filter(
-    exam => exam.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            exam.student.toLowerCase().includes(searchQuery.toLowerCase())
+    exam => exam.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   const filteredVerifications = pendingVerifications.filter(
-    exam => exam.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            exam.student.toLowerCase().includes(searchQuery.toLowerCase())
+    session => session.exam.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -268,15 +242,15 @@ const ProctorDashboard = () => {
         <TabsContent value="pending" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredVerifications.length > 0 ? (
-              filteredVerifications.map((exam) => (
-                <Card key={exam.id} className="card-hover">
+              filteredVerifications.map((session) => (
+                <Card key={session.id} className="card-hover">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-medium">{exam.title}</h3>
+                        <h3 className="text-lg font-medium">{session.exam.title}</h3>
                         <div className="flex items-center gap-2 text-gray-500 mt-1">
                           <User className="h-4 w-4" />
-                          <span>{exam.student}</span>
+                          <span>{session.exam.student}</span>
                         </div>
                       </div>
                       <Badge className="bg-yellow-500">Pending</Badge>
@@ -286,7 +260,7 @@ const ProctorDashboard = () => {
                       <div>
                         <p className="text-xs text-gray-500">Scheduled for</p>
                         <p className="font-medium">
-                          {exam.startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {new Date(session.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </p>
                       </div>
                       <div>
@@ -311,7 +285,7 @@ const ProctorDashboard = () => {
                       <Button 
                         size="sm" 
                         className="flex-1 bg-exam-primary hover:bg-exam-accent"
-                        onClick={() => handleVerifyId(exam.id)}
+                        onClick={() => handleVerifyId(session.id)}
                       >
                         Verify ID
                       </Button>

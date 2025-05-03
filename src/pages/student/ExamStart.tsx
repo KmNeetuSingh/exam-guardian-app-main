@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Camera, CheckCircle, Clock, Upload, XCircle } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate, useParams } from 'react-router-dom';
+import { startSession } from '@/api/api';
 
 const ExamStart = () => {
   const { examId } = useParams();
@@ -112,24 +112,22 @@ const ExamStart = () => {
   // Handle start exam
   const handleStartExam = async () => {
     setIsLoading(true);
-    
-    // Simulate verification process
-    for (let i = 0; i <= 100; i += 10) {
-      setProgress(i);
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    try {
+      await startSession(examId!);
     toast({
       title: "Exam started",
       description: "Your exam session has been successfully started. The proctor can now see your webcam feed.",
     });
-    
     setIsLoading(false);
-    // Pass webcam stream information to exam page
     navigate(`/student/exam/${examId}`);
+    } catch (error: any) {
+      toast({
+        title: "Exam start failed",
+        description: error?.response?.data?.message || "Could not start the exam session.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
   };
 
   // Clean up webcam on unmount
