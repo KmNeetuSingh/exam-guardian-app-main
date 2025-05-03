@@ -1,68 +1,128 @@
-# Exam Guardian
+# 🧠 Exam Tutor – Full Stack Application
 
-A full-stack web application for secure online exam monitoring and proctoring.
+A full-stack exam management system built with:
 
-## Features
-- User authentication (student/proctor) with JWT
-- Role-based access control
-- Exam creation and management
-- Exam session handling and monitoring
-- Centralized API handling in frontend
+- **Backend:** Node.js, Express, MongoDB
+- **Frontend:** TypeScript + Vite (No React)
+- **Authentication:** JWT
+- **Styling:** Tailwind CSS
 
 ---
 
-## Backend Setup (Node.js, Express, MongoDB)
+## 📁 Project Structure
 
-1. **Install dependencies:**
-   ```bash
-   cd backend
-   npm install
-   ```
-2. **Create a `.env` file in the `backend` folder:**
-   ```env
-   MONGO_URI=your_mongodb_connection_string
-   PORT=5000
-   JWT_SECRET=your_jwt_secret
-   ```
-3. **Start the backend server:**
-   ```bash
-   npm run dev
-   ```
-
----
-
-## Frontend Setup (React, Vite, TypeScript)
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-2. **Create a `.env` file in the frontend root:**
-   ```env
-   VITE_API_BASE_URL=http://localhost:5000/api
-   ```
-3. **Start the frontend dev server:**
-   ```bash
-   npm run dev
-   ```
-
----
-
-## API Integration
-- All API requests are managed via `src/api/api.ts` using Axios.
-- JWT tokens are auto-attached for secure routes.
-- Update API calls in components to use the exported functions from `src/api/api.ts`.
-
----
-
-## Folder Structure
 ```
-backend/         # Node.js/Express/MongoDB backend
-src/api/api.ts   # Centralized API functions for frontend
-src/pages/       # React pages (login, register, dashboard, etc.)
+.
+├── backend         # Express + MongoDB API
+├── frontend        # Vite + TypeScript (no React)
 ```
 
 ---
 
-## License
-MIT
+## ⚙️ Backend Setup (`/backend`)
+
+### 1. Navigate to the backend folder:
+
+```bash
+cd backend
+```
+
+### 2. Install dependencies:
+
+```bash
+npm install
+```
+
+### 3. Create a `.env` file in `/backend`:
+
+```env
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/Examtutor
+JWT_SECRET=your_secret_key
+```
+
+### 4. Start the server:
+
+```bash
+npm run dev
+```
+
+The backend API will run at: `http://localhost:5000`
+
+---
+
+## 🌐 Frontend Setup (`/frontend`)
+
+### 1. Navigate to the frontend folder:
+
+```bash
+cd frontend
+```
+
+### 2. Install dependencies:
+
+```bash
+npm install
+```
+
+### 3. Create a `.env` file in `/frontend`:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+### 4. Start the frontend server:
+
+```bash
+npm run dev
+```
+
+Visit the app at: `http://localhost:5173`
+
+---
+
+## 📸 Profile Picture Handling
+
+Uploaded profile pictures are stored at:
+
+```
+/backend/uploads/profile-pics
+```
+
+They are served statically through Express and displayed using:
+
+```ts
+${VITE_API_BASE_URL}/uploads/profile-pics/filename.jpg
+```
+
+---
+
+## 📦 Features
+
+- ✅ User authentication (Student/Admin)
+- ✅ Exam creation and listing
+- ✅ Profile picture uploads
+- ✅ Protected routes
+- ✅ Dark/light mode toggle
+
+---
+
+## 🧪 Tech Stack
+
+### Backend:
+
+- Node.js
+- Express.js
+- MongoDB (Mongoose)
+- Multer (for file uploads)
+- JWT (Authentication)
+
+### Frontend:
+
+- TypeScript
+- Vite
+- Tailwind CSS
+- Vanilla JavaScript (no frameworks)
+
+---
+
