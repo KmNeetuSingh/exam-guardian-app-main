@@ -10,9 +10,12 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import StudentDashboard from "./pages/student/Dashboard";
 import ExamStart from "./pages/student/ExamStart";
+import ExamTakingPage from "./pages/student/ExamTakingPage";
 import ProctorDashboard from "./pages/proctor/Dashboard";
+import CreateExam from "./pages/proctor/CreateExam";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +28,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={
             <AuthProvider>
-              <MainLayout />
+              <NotificationProvider>
+                <MainLayout />
+              </NotificationProvider>
             </AuthProvider>
           }>
             <Route index element={<Index />} />
@@ -34,8 +39,9 @@ const App = () => (
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="student/dashboard" element={<StudentDashboard />} />
             <Route path="student/start-exam/:examId" element={<ExamStart />} />
-            <Route path="student/exam/:examId" element={<NotFound />} />
+            <Route path="student/exam/:examId" element={<ExamTakingPage />} />
             <Route path="proctor/dashboard" element={<ProctorDashboard />} />
+            <Route path="proctor/create-exam" element={<CreateExam />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
